@@ -1,0 +1,526 @@
+HTML
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ローマ字れんしゅうアプリ</title>
+  <style>
+    :root {
+      --primary-color: #4CAF50;
+      --bg-color: #f0f8ff;
+      --card-bg: #ffffff;
+      --text-color: #333333;
+    }
+
+    body {
+      font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+
+    .container {
+      background-color: var(--card-bg);
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 500px;
+      padding: 30px;
+      position: relative;
+      overflow: hidden;
+      text-align: center;
+    }
+
+    /* 右上のひまわりエリア */
+    .flower-container {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 120px;
+      height: 140px;
+      pointer-events: none;
+    }
+
+    /* ひまわりのSVGアニメーション設定 */
+    .sunflower-stem {
+      stroke: #4CAF50;
+      stroke-width: 6;
+      stroke-linecap: round;
+      transition: all 0.5s ease;
+    }
+    
+    .sunflower-petal {
+      fill: #FFD700;
+      transition: transform 0.5s ease, opacity 0.5s ease;
+      transform-origin: 80px 40px;
+    }
+
+    .sunflower-center {
+      fill: #8B4513;
+      transition: transform 0.5s ease;
+      transform-origin: 80px 40px;
+    }
+
+    .leaf {
+      fill: #4CAF50;
+      transition: opacity 0.5s ease;
+    }
+
+    /* 水やりアクション（じょうろ） */
+    .watering-can {
+      position: absolute;
+      top: 10px;
+      left: -10px;
+      width: 45px;
+      height: 45px;
+      opacity: 0;
+      transform: rotate(0deg);
+      transition: opacity 0.3s ease, transform 0.5s ease;
+    }
+
+    .watering-can.active {
+      opacity: 1;
+      transform: rotate(-25deg);
+    }
+
+    .water-drops {
+      position: absolute;
+      top: 45px;
+      left: 20px;
+      opacity: 0;
+    }
+
+    .watering-can.active + .water-drops {
+      animation: waterPour 0.8s ease-in-out;
+    }
+
+    @keyframes waterPour {
+      0% { opacity: 0; transform: translateY(0); }
+      50% { opacity: 1; }
+      100% { opacity: 0; transform: translateY(15px); }
+    }
+
+    /* 曇り空アクション */
+    .cloud-overlay {
+      position: absolute;
+      top: 5px;
+      right: 15px;
+      width: 90px;
+      opacity: 0;
+      transition: opacity 0.5s ease, transform 0.5s ease;
+      transform: translateY(-10px);
+    }
+
+    .cloud-overlay.active {
+      opacity: 0.9;
+      transform: translateY(0);
+      animation: cloudShake 0.5s ease-in-out;
+    }
+
+    @keyframes cloudShake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-3px); }
+      75% { transform: translateX(3px); }
+    }
+
+    /* 問題カード */
+    .question-box {
+      margin-top: 40px;
+      margin-bottom: 25px;
+    }
+
+    .question-title {
+      font-size: 1.1rem;
+      color: #666;
+      margin-bottom: 5px;
+    }
+
+    .target-name {
+      font-size: 2.2rem;
+      font-weight: bold;
+      color: #2c3e50;
+      margin: 10px 0;
+      letter-spacing: 2px;
+    }
+
+    .type-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      font-size: 0.85rem;
+      background-color: #e8f5e9;
+      color: #2e7d32;
+      border-radius: 12px;
+      margin-bottom: 10px;
+    }
+
+    /* 入力エリア */
+    .input-group {
+      margin-bottom: 20px;
+    }
+
+    input[type="text"] {
+      width: 80%;
+      padding: 12px 15px;
+      font-size: 1.4rem;
+      border: 3px solid #ccc;
+      border-radius: 10px;
+      text-align: center;
+      outline: none;
+      transition: border-color 0.3s;
+      text-transform: uppercase;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--primary-color);
+    }
+
+    .btn {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      font-size: 1.2rem;
+      border-radius: 25px;
+      cursor: pointer;
+      font-weight: bold;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      transition: background-color 0.2s, transform 0.1s;
+    }
+
+    .btn:hover {
+      background-color: #45a049;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    /* フィードバック */
+    .feedback {
+      height: 30px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    .feedback.correct { color: #4CAF50; }
+    .feedback.incorrect { color: #f44336; }
+
+    /* スコア・プログレス */
+    .progress-bar {
+      width: 100%;
+      background-color: #e0e0e0;
+      height: 10px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background-color: var(--primary-color);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    /* リザルト画面 */
+    .result-screen {
+      display: none;
+    }
+
+    .bloom-status {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #ff9800;
+      margin: 15px 0;
+    }
+
+    .score-detail {
+      font-size: 1.2rem;
+      margin-bottom: 25px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- 右上のひまわりとアクション演出 -->
+  <div class="flower-container">
+    <!-- じょうろ（正解時） -->
+    <svg class="watering-can" id="wateringCan" viewBox="0 0 64 64">
+      <path fill="#2196F3" d="M32 16 L48 24 L48 40 L24 40 L24 24 Z"/>
+      <path fill="#1976D2" d="M48 28 L60 20 L58 16 L44 24 Z"/>
+      <circle cx="60" cy="18" r="3" fill="#90CAF9"/>
+      <path stroke="#1976D2" stroke-width="4" fill="none" d="M24 28 C15 28 15 38 24 38"/>
+    </svg>
+    <svg class="water-drops" id="waterDrops" width="30" height="30" viewBox="0 0 30 30">
+      <circle cx="5" cy="5" r="2" fill="#2196F3"/>
+      <circle cx="15" cy="12" r="2.5" fill="#2196F3"/>
+      <circle cx="22" cy="22" r="2" fill="#2196F3"/>
+    </svg>
+
+    <!-- 曇り雲（不正解時） -->
+    <svg class="cloud-overlay" id="cloudOverlay" viewBox="0 0 64 40">
+      <path fill="#90A4AE" d="M18 32 C10 32 6 26 10 20 C6 16 10 10 18 12 C22 6 34 6 38 12 C44 8 52 12 50 18 C56 22 54 32 44 32 Z"/>
+    </svg>
+
+    <!-- ひまわり本体 (SVG) -->
+    <svg width="120" height="140" viewBox="0 0 120 140">
+      <!-- 植木鉢 -->
+      <polygon points="45,130 75,130 80,105 40,105" fill="#D84315" />
+      <rect x="37" y="98" width="46" height="8" rx="2" fill="#BF360C" />
+      
+      <!-- 茎 -->
+      <path id="stem" class="sunflower-stem" d="M 60 100 Q 60 80 60 60" />
+      
+      <!-- 葉っぱ -->
+      <path id="leafLeft" class="leaf" d="M 60 85 Q 40 80 45 95 Q 55 95 60 85" opacity="0"/>
+      <path id="leafRight" class="leaf" d="M 60 75 Q 80 70 75 85 Q 65 85 60 75" opacity="0"/>
+
+      <!-- ひまわりの花（花びらと中心） -->
+      <g id="flowerHead" transform="translate(-20, 0)">
+        <!-- 花びら（12枚） -->
+        <g id="petals" class="sunflower-petal" opacity="0" transform="scale(0.2)">
+          <ellipse cx="80" cy="20" rx="5" ry="12" />
+          <ellipse cx="80" cy="60" rx="5" ry="12" />
+          <ellipse cx="60" cy="40" rx="12" ry="5" />
+          <ellipse cx="100" cy="40" rx="12" ry="5" />
+          <ellipse cx="66" cy="26" rx="6" ry="12" transform="rotate(-45 66 26)" />
+          <ellipse cx="94" cy="54" rx="6" ry="12" transform="rotate(-45 94 54)" />
+          <ellipse cx="94" cy="26" rx="6" ry="12" transform="rotate(45 94 26)" />
+          <ellipse cx="66" cy="54" rx="6" ry="12" transform="rotate(45 66 54)" />
+        </g>
+        <!-- 花の中心 -->
+        <circle id="flowerCenter" class="sunflower-center" cx="80" cy="40" r="3" />
+      </g>
+    </svg>
+  </div>
+
+  <!-- クイズ本体エリア -->
+  <div id="quizScreen">
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <div class="question-box">
+      <span class="type-badge" id="typeBadge">なまえ</span>
+      <div class="question-title">ローマ字でかこう！</div>
+      <div class="target-name" id="targetName">---</div>
+    </div>
+
+    <div class="input-group">
+      <input type="text" id="answerInput" placeholder="ローマ字を入力" autocomplete="off" autofocus>
+    </div>
+
+    <button class="btn" id="submitBtn" onclick="checkAnswer()">こたえる</button>
+
+    <div class="feedback" id="feedback"></div>
+  </div>
+
+  <!-- リザルト画面 -->
+  <div id="resultScreen" class="result-screen">
+    <h2>けっかふ発表！</h2>
+    <p>ひまわりの そだちぐあい</p>
+    <div class="bloom-status" id="bloomStatus">5分咲き</div>
+    <div class="score-detail" id="scoreDetail">10問中 5問 正解！</div>
+    <button class="btn" onclick="restartQuiz()">もう一度あそぶ</button>
+  </div>
+</div>
+
+<script>
+  // 名前と苗字のデータリスト（ヘボン式ローマ字対応）
+  const nameDatabase = [
+    // [日本語, ローマ字, 区分]
+    // 苗字
+    ["さとう", "SATO", "みょうじ"],
+    ["すずき", "SUZUKI", "みょうじ"],
+    ["たかはし", "TAKAHASHI", "みょうじ"],
+    ["たなか", "TANAKA", "みょうじ"],
+    ["いとう", "ITO", "みょうじ"],
+    ["わたなべ", "WATANABE", "みょうじ"],
+    ["やまもと", "YAMAMOTO", "みょうじ"],
+    ["なかむら", "NAKAMURA", "みょうじ"],
+    ["こばやし", "KOBAYASHI", "みょうじ"],
+    ["加藤 (かとう)", "KATO", "みょうじ"],
+    // 下の名前
+    ["たろう", "TARO", "なまえ"],
+    ["はなこ", "HANAKO", "なまえ"],
+    ["れん", "REN", "なまえ"],
+    ["ひなた", "HINATA", "なまえ"],
+    ["そうた", "SOUTA", "なまえ"],
+    ["ゆい", "YUI", "なまえ"],
+    ["あおい", "AOI", "なまえ"],
+    ["りく", "RIKU", "なまえ"],
+    ["さくら", "SAKURA", "なまえ"],
+    ["けんた", "KENTA", "なまえ"]
+  ];
+
+  const TOTAL_QUESTIONS = 10;
+  let currentQuestionIndex = 0;
+  let score = 0;
+  let questions = [];
+
+  // DOM要素
+  const targetNameEl = document.getElementById('targetName');
+  const typeBadgeEl = document.getElementById('typeBadge');
+  const answerInput = document.getElementById('answerInput');
+  const feedbackEl = document.getElementById('feedback');
+  const progressFill = document.getElementById('progressFill');
+  const quizScreen = document.getElementById('quizScreen');
+  const resultScreen = document.getElementById('resultScreen');
+  const bloomStatusEl = document.getElementById('bloomStatus');
+  const scoreDetailEl = document.getElementById('scoreDetail');
+
+  // ひまわり要素
+  const stem = document.getElementById('stem');
+  const leafLeft = document.getElementById('leafLeft');
+  const leafRight = document.getElementById('leafRight');
+  const petals = document.getElementById('petals');
+  const flowerCenter = document.getElementById('flowerCenter');
+  const wateringCan = document.getElementById('wateringCan');
+  const cloudOverlay = document.getElementById('cloudOverlay');
+
+  // 初期化・ゲーム開始
+  function initGame() {
+    currentQuestionIndex = 0;
+    score = 0;
+    // シャッフルして10問選出
+    questions = [...nameDatabase].sort(() => Math.random() - 0.5).slice(0, TOTAL_QUESTIONS);
+    
+    quizScreen.style.display = 'block';
+    resultScreen.style.display = 'none';
+    updateFlower(0);
+    showQuestion();
+  }
+
+  // 問題表示
+  function showQuestion() {
+    const q = questions[currentQuestionIndex];
+    targetNameEl.textContent = q[0];
+    typeBadgeEl.textContent = q[2];
+    answerInput.value = '';
+    feedbackEl.textContent = '';
+    feedbackEl.className = 'feedback';
+    progressFill.style.width = `${(currentQuestionIndex / TOTAL_QUESTIONS) * 100}%`;
+    answerInput.focus();
+  }
+
+  // 回答チェック
+  function checkAnswer() {
+    const userInput = answerInput.value.trim().toUpperCase();
+    if (!userInput) return;
+
+    const correctAnswer = questions[currentQuestionIndex][1];
+
+    if (userInput === correctAnswer) {
+      score++;
+      feedbackEl.textContent = "⭕ せいかい！";
+      feedbackEl.className = "feedback correct";
+      triggerWateringAction();
+      updateFlower(score);
+    } else {
+      feedbackEl.textContent = `❌ ざんねん！ 正解は ${correctAnswer}`;
+      feedbackEl.className = "feedback incorrect";
+      triggerCloudAction();
+    }
+
+    currentQuestionIndex++;
+    answerInput.disabled = true;
+
+    setTimeout(() => {
+      answerInput.disabled = false;
+      if (currentQuestionIndex < TOTAL_QUESTIONS) {
+        showQuestion();
+      } else {
+        showResult();
+      }
+    }, 1500);
+  }
+
+  // エンターキーでの送信対応
+  answerInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      checkAnswer();
+    }
+  });
+
+  // ひまわりの成長段階を描画（0～10点）
+  function updateFlower(currentScore) {
+    // 茎の長さ (Qカーブで成長表現)
+    const startY = 100;
+    const endY = 100 - (currentScore * 5); // 最大50px伸びる
+    stem.setAttribute('d', `M 60 100 Q ${60 - (currentScore%2 * 5)} ${(startY+endY)/2} 60 ${endY}`);
+
+    // 花の高さ追従
+    const headY = endY - 60;
+    document.getElementById('flowerHead').setAttribute('transform', `translate(-20, ${headY})`);
+
+    // 葉っぱ（3点以上、6点以上で表示）
+    leafLeft.style.opacity = currentScore >= 3 ? "1" : "0";
+    leafRight.style.opacity = currentScore >= 6 ? "1" : "0";
+
+    // 花びらと中心の大きさ
+    const scale = Math.min(0.2 + (currentScore * 0.08), 1.0);
+    const centerRadius = Math.min(3 + (currentScore * 1.2), 15);
+    
+    petals.setAttribute('transform', `scale(${scale})`);
+    petals.style.opacity = currentScore >= 2 ? "1" : "0";
+    flowerCenter.setAttribute('r', centerRadius);
+  }
+
+  // 正解時：じょうろアクション
+  function triggerWateringAction() {
+    wateringCan.classList.add('active');
+    setTimeout(() => {
+      wateringCan.classList.remove('active');
+    }, 1000);
+  }
+
+  // 不正解時：曇り空アクション
+  function triggerCloudAction() {
+    cloudOverlay.classList.add('active');
+    setTimeout(() => {
+      cloudOverlay.classList.remove('active');
+    }, 1200);
+  }
+
+  // 最後の結果画面（咲き具合の判定）
+  function showResult() {
+    quizScreen.style.display = 'none';
+    resultScreen.style.display = 'block';
+
+    let bloomText = "";
+    if (score === 10) {
+      bloomText = "🌻 満開！（10分咲き）";
+    } else if (score >= 8) {
+      bloomText = "🌻 8分咲き（もうすぐ満開！）";
+    } else if (score >= 5) {
+      bloomText = "🌻 5分咲き（半分咲いたよ！）";
+    } else if (score >= 3) {
+      bloomText = "🌱 3分咲き（つぼみができた！）";
+    } else {
+      bloomText = "🌱 まだ芽がでたばかり";
+    }
+
+    bloomStatusEl.textContent = bloomText;
+    scoreDetailEl.textContent = `${TOTAL_QUESTIONS}問中 ${score}問 正解！`;
+  }
+
+  // 再挑戦
+  function restartQuiz() {
+    initGame();
+  }
+
+  // ゲームスタート
+  initGame();
+</script>
+
+</body>
+</html>
