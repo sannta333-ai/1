@@ -1,4 +1,3 @@
-HTML
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -31,24 +30,72 @@ HTML
       border-radius: 20px;
       box-shadow: 0 10px 25px rgba(0,0,0,0.1);
       width: 100%;
-      max-width: 500px;
+      max-width: 550px;
       padding: 30px;
       position: relative;
       overflow: hidden;
       text-align: center;
     }
 
+    /* タブメニュー UI */
+    .tab-container {
+      display: flex;
+      justify-content: space-between;
+      gap: 3px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #e0e0e0;
+      padding-bottom: 8px;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      flex: 1 1 14%;
+      padding: 8px 2px;
+      font-size: 0.75rem;
+      font-weight: bold;
+      border: none;
+      background-color: #e8e8e8;
+      color: #666;
+      border-radius: 6px 6px 0 0;
+      cursor: pointer;
+      transition: background-color 0.2s, color 0.2s;
+      white-space: nowrap;
+    }
+
+    .tab-btn.active {
+      background-color: var(--primary-color);
+      color: white;
+    }
+
+    .tab-btn.weak-tab {
+      background-color: #ffe0b2;
+      color: #e65100;
+    }
+
+    .tab-btn.weak-tab.active {
+      background-color: #ff9800;
+      color: white;
+    }
+
+    .badge {
+      background-color: #f44336;
+      color: white;
+      border-radius: 10px;
+      padding: 2px 5px;
+      font-size: 0.7rem;
+      margin-left: 2px;
+    }
+
     /* 右上のひまわりエリア */
     .flower-container {
       position: absolute;
-      top: 10px;
+      top: 65px;
       right: 10px;
       width: 120px;
       height: 140px;
       pointer-events: none;
     }
 
-    /* ひまわりのSVGアニメーション設定 */
     .sunflower-stem {
       stroke: #4CAF50;
       stroke-width: 6;
@@ -73,7 +120,7 @@ HTML
       transition: opacity 0.5s ease;
     }
 
-    /* 水やりアクション（じょうろ） */
+    /* アクション演出 */
     .watering-can {
       position: absolute;
       top: 10px;
@@ -107,7 +154,6 @@ HTML
       100% { opacity: 0; transform: translateY(15px); }
     }
 
-    /* 曇り空アクション */
     .cloud-overlay {
       position: absolute;
       top: 5px;
@@ -230,7 +276,6 @@ HTML
       transition: width 0.3s ease;
     }
 
-    /* リザルト画面 */
     .result-screen {
       display: none;
     }
@@ -246,14 +291,29 @@ HTML
       font-size: 1.2rem;
       margin-bottom: 25px;
     }
+
+    .empty-msg {
+      font-size: 1.1rem;
+      color: #777;
+      margin: 40px 0;
+    }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <!-- 右上のひまわりとアクション演出 -->
+  <!-- タブ領域 -->
+  <div class="tab-container">
+    <button class="tab-btn active" onclick="switchTab('lvl1')">Lv.1</button>
+    <button class="tab-btn" onclick="switchTab('lvl2')">Lv.2</button>
+    <button class="tab-btn" onclick="switchTab('lvl3')">Lv.3</button>
+    <button class="tab-btn" onclick="switchTab('lvl4')">Lv.4</button>
+    <button class="tab-btn" onclick="switchTab('lvl5')">Lv.5</button>
+    <button class="tab-btn weak-tab" onclick="switchTab('weak')">苦手 <span class="badge" id="weakBadge">0</span></button>
+  </div>
+
+  <!-- ひまわりアニメーション -->
   <div class="flower-container">
-    <!-- じょうろ（正解時） -->
     <svg class="watering-can" id="wateringCan" viewBox="0 0 64 64">
       <path fill="#2196F3" d="M32 16 L48 24 L48 40 L24 40 L24 24 Z"/>
       <path fill="#1976D2" d="M48 28 L60 20 L58 16 L44 24 Z"/>
@@ -266,27 +326,20 @@ HTML
       <circle cx="22" cy="22" r="2" fill="#2196F3"/>
     </svg>
 
-    <!-- 曇り雲（不正解時） -->
     <svg class="cloud-overlay" id="cloudOverlay" viewBox="0 0 64 40">
       <path fill="#90A4AE" d="M18 32 C10 32 6 26 10 20 C6 16 10 10 18 12 C22 6 34 6 38 12 C44 8 52 12 50 18 C56 22 54 32 44 32 Z"/>
     </svg>
 
-    <!-- ひまわり本体 (SVG) -->
     <svg width="120" height="140" viewBox="0 0 120 140">
-      <!-- 植木鉢 -->
       <polygon points="45,130 75,130 80,105 40,105" fill="#D84315" />
       <rect x="37" y="98" width="46" height="8" rx="2" fill="#BF360C" />
       
-      <!-- 茎 -->
       <path id="stem" class="sunflower-stem" d="M 60 100 Q 60 80 60 60" />
       
-      <!-- 葉っぱ -->
       <path id="leafLeft" class="leaf" d="M 60 85 Q 40 80 45 95 Q 55 95 60 85" opacity="0"/>
       <path id="leafRight" class="leaf" d="M 60 75 Q 80 70 75 85 Q 65 85 60 75" opacity="0"/>
 
-      <!-- ひまわりの花（花びらと中心） -->
       <g id="flowerHead" transform="translate(-20, 0)">
-        <!-- 花びら（12枚） -->
         <g id="petals" class="sunflower-petal" opacity="0" transform="scale(0.2)">
           <ellipse cx="80" cy="20" rx="5" ry="12" />
           <ellipse cx="80" cy="60" rx="5" ry="12" />
@@ -297,7 +350,6 @@ HTML
           <ellipse cx="94" cy="26" rx="6" ry="12" transform="rotate(45 94 26)" />
           <ellipse cx="66" cy="54" rx="6" ry="12" transform="rotate(45 66 54)" />
         </g>
-        <!-- 花の中心 -->
         <circle id="flowerCenter" class="sunflower-center" cx="80" cy="40" r="3" />
       </g>
     </svg>
@@ -326,57 +378,99 @@ HTML
 
   <!-- リザルト画面 -->
   <div id="resultScreen" class="result-screen">
-    <h2>けっかふ発表！</h2>
+    <h2>けっか発表！</h2>
     <p>ひまわりの そだちぐあい</p>
     <div class="bloom-status" id="bloomStatus">5分咲き</div>
-    <div class="score-detail" id="scoreDetail">10問中 5問 正解！</div>
+    <div class="score-detail" id="scoreDetail">30問中 15問 正解！</div>
     <button class="btn" onclick="restartQuiz()">もう一度あそぶ</button>
   </div>
 </div>
 
 <script>
-  // 名前と苗字のデータリスト（ヘボン式ローマ字対応）
-  const nameDatabase = [
-    // [日本語, ローマ字, 区分]
-    // 苗字
-    ["さとう", "SATO", "みょうじ"],
-    ["すずき", "SUZUKI", "みょうじ"],
-    ["たかはし", "TAKAHASHI", "みょうじ"],
-    ["たなか", "TANAKA", "みょうじ"],
-    ["いとう", "ITO", "みょうじ"],
-    ["わたなべ", "WATANABE", "みょうじ"],
-    ["やまもと", "YAMAMOTO", "みょうじ"],
-    ["なかむら", "NAKAMURA", "みょうじ"],
-    ["こばやし", "KOBAYASHI", "みょうじ"],
-    ["加藤 (かとう)", "KATO", "みょうじ"],
-    // 下の名前
-    ["たろう", "TARO", "なまえ"],
-    ["はなこ", "HANAKO", "なまえ"],
-    ["れん", "REN", "なまえ"],
-    ["ひなた", "HINATA", "なまえ"],
-    ["そうた", "SOUTA", "なまえ"],
-    ["ゆい", "YUI", "なまえ"],
-    ["あおい", "AOI", "なまえ"],
-    ["りく", "RIKU", "なまえ"],
-    ["さくら", "SAKURA", "なまえ"],
-    ["けんた", "KENTA", "なまえ"]
-  ];
+  // 一般的な「苗字・名前・パスポートで多い表記・外国人の名前」に限定したデータベース
+  const levelData = {
+    lvl1: [
+      // 清音中心の一般的な苗字・名前・外国人の名前
+      ["たろう", "TARO", "なまえ"], ["はなこ", "HANAKO", "なまえ"], ["れん", "REN", "なまえ"], ["あおい", "AOI", "なまえ"],
+      ["りく", "RIKU", "なまえ"], ["ゆい", "YUI", "なまえ"], ["さくら", "SAKURA", "なまえ"], ["けんた", "KENTA", "なまえ"],
+      ["そら", "SORA", "なまえ"], ["かい", "KAI", "なまえ"], ["めい", "MEI", "なまえ"], ["りお", "RIO", "なまえ"],
+      ["たくみ", "TAKUMI", "なまえ"], ["なお", "NAO", "なまえ"], ["まな", "MANA", "なまえ"], ["はると", "HARUTO", "なまえ"],
+      ["ひかり", "HIKARI", "なまえ"], ["かな", "KANA", "なまえ"], ["りか", "RIKA", "なまえ"], ["まこ", "MAKO", "なまえ"],
+      ["たなか", "TANAKA", "みょうじ"], ["いけだ", "IKEDA", "みょうじ"], ["もり", "MORI", "みょうじ"], ["はやし", "HAYASHI", "みょうじ"],
+      ["きむら", "KIMURA", "みょうじ"], ["のむら", "NOMURA", "みょうじ"], ["はら", "HARA", "みょうじ"], ["あべ", "ABE", "みょうじ"],
+      ["おがわ", "OGAWA", "みょうじ"], ["おかだ", "OKADA", "みょうじ"], ["むらかみ", "MURAKAMI", "みょうじ"], ["いしかわ", "ISHIKAWA", "みょうじ"],
+      ["さかもと", "SAKAMOTO", "みょうじ"], ["かねこ", "KANEKO", "みょうじ"], ["みうら", "MIURA", "みょうじ"], ["たむら", "TAMURA", "みょうじ"],
+      ["わだ", "WADA", "みょうじ"], ["なかやま", "NAKAYAMA", "みょうじ"], ["たかぎ", "TAKAGI", "みょうじ"], ["きのした", "KINOSHITA", "みょうじ"],
+      ["きくち", "KIKUCHI", "みょうじ"], ["ささき", "SASAKI", "みょうじ"], ["のぐち", "NOGUCHI", "みょうじ"], ["まつい", "MATSUI", "みょうじ"],
+      // 外国人の名前
+      ["とむ", "TOM", "外国人の名前"], ["えま", "EMA", "外国人の名前"], ["けん", "KEN", "外国人の名前"], ["りりー", "LILY", "外国人の名前"],
+      ["りさ", "LISA", "外国人の名前"], ["あむ", "AMU", "外国人の名前"]
+    ],
+    lvl2: [
+      // 濁音・長音を含むメジャーな名前・苗字・外国人の名前
+      ["すずき", "SUZUKI", "みょうじ"], ["ひなた", "HINATA", "なまえ"], ["ゆうま", "YUMA", "なまえ"], ["そうた", "SOUTA", "なまえ"],
+      ["こうた", "KOUTA", "なまえ"], ["とうま", "TOUMA", "なまえ"], ["だいすけ", "DAISUKE", "なまえ"], ["けんじ", "KENJI", "なまえ"],
+      ["まえだ", "MAEDA", "みょうじ"], ["ふじた", "FUJITA", "みょうじ"], ["にしむら", "NISHIMURA", "みょうじ"], ["ふじい", "FUJII", "みょうじ"],
+      ["なかがわ", "NAKAGAWA", "みょうじ"], ["はせがわ", "HASEGAWA", "みょうじ"], ["こんどう", "KONDO", "みょうじ"], ["よしだ", "YOSHIDA", "みょうじ"],
+      ["ほんだ", "HONDA", "みょうじ"], ["くぼ", "KUBO", "みょうじ"], ["あさの", "ASANO", "みょうじ"], ["もりた", "MORITA", "みょうじ"],
+      ["たくや", "TAKUYA", "なまえ"], ["まお", "MAO", "なまえ"], ["けいすけ", "KEISUKE", "なまえ"], ["しんじ", "SHINJI", "なまえ"],
+      ["しんいち", "SHINICHI", "なまえ"], ["ゆうと", "YUTO", "なまえ"], ["あかね", "AKANE", "なまえ"], ["ほのか", "HONOKA", "なまえ"],
+      ["つばさ", "TSUBASA", "なまえ"], ["たけし", "TAKESHI", "なまえ"], ["ひろし", "HIROSHI", "なまえ"], ["さとし", "SATOSHI", "なまえ"],
+      ["あきら", "AKIRA", "なまえ"], ["たかし", "TAKASHI", "なまえ"], ["みずき", "MIZUKI", "なまえ"], ["なおき", "NAOKI", "なまえ"],
+      // 外国人の名前
+      ["じょん", "JOHN", "外国人の名前"], ["あな", "ANA", "外国人の名前"], ["べん", "BEN", "外国人の名前"], ["みく", "MIKU", "なまえ"]
+    ],
+    lvl3: [
+      // 拗音（きゃ・しゅ・ちょ等）を含むメジャーな名前・苗字・外国人の名前
+      ["たかはし", "TAKAHASHI", "みょうじ"], ["わたなべ", "WATANABE", "みょうじ"], ["こばやし", "KOBAYASHI", "みょうじ"], ["やまもと", "YAMAMOTO", "みょうじ"],
+      ["なかむら", "NAKAMURA", "みょうじ"], ["しょうた", "SHOTA", "なまえ"], ["りょうた", "RYOTA", "なまえ"], ["りゅうせい", "RYUSEI", "なまえ"],
+      ["きょうこ", "KYOKO", "なまえ"], ["ようこ", "YOKO", "なまえ"], ["りょうこ", "RYOKO", "なまえ"], ["ちひろ", "CHIHIRO", "なまえ"],
+      ["しょうへい", "SHOHEI", "なまえ"], ["かおる", "KAORU", "なまえ"], ["けい", "KEI", "なまえ"], ["こうへい", "KOHEI", "なまえ"],
+      ["こうすけ", "KOSUKE", "なまえ"], ["じゅんいち", "JUNICHI", "なまえ"], ["しゅういち", "SHUICHI", "なまえ"], ["りょういち", "RYOICHI", "なまえ"],
+      ["しょういち", "SHOICHI", "なまえ"], ["しゅん", "SHUN", "なまえ"], ["じゅん", "JUN", "なまえ"], ["しゅんすけ", "SHUNSUKE", "なまえ"],
+      ["りょうすけ", "RYOSUKE", "なまえ"], ["しょうすけ", "SHOSUKE", "なまえ"], ["しゅんた", "SHUNTA", "なまえ"], ["りょうじ", "RYOJI", "なまえ"],
+      ["じゅんこ", "JUNKO", "なまえ"], ["しゅうじ", "SHUJI", "なまえ"], ["きょうた", "KYOTA", "なまえ"], ["きゅうさく", "KYUSAKU", "なまえ"],
+      // 外国人の名前
+      ["Jack", "JACK", "外国人の名前"], ["じゃっく", "JACK", "外国人の名前"], ["しゃーろっと", "CHARLOTTE", "外国人の名前"], ["じょーじ", "GEORGE", "外国人の名前"]
+    ],
+    lvl4: [
+      // 促音（っ）・パスポートによくある定番のヘボン式苗字・名前
+      ["さとう", "SATO", "みょうじ"], ["かとう", "KATO", "みょうじ"], ["いとう", "ITO", "みょうじ"], ["くどう", "KUDO", "みょうじ"],
+      ["ないとう", "NAITO", "みょうじ"], ["えんどう", "ENDO", "みょうじ"], ["ごとう", "GOTO", "みょうじ"], ["むとう", "MUTO", "みょうじ"],
+      ["けいこ", "KEIKO", "なまえ"], ["れいこ", "REIKO", "なまえ"], ["いっさ", "ISSA", "なまえ"], ["にしかわ", "NISHIKAWA", "みょうじ"],
+      ["まつおか", "MATSUOKA", "みょうじ"], ["よしおか", "YOSHIOKA", "みょうじ"], ["まつだ", "MATSUDA", "みょうじ"], ["つちや", "TSUCHIYA", "みょうじ"],
+      ["ちば", "CHIBA", "みょうじ"], ["しのはら", "SHINOHARA", "みょうじ"], ["しまだ", "SHIMADA", "みょうじ"], ["しみず", "SHIMIZU", "みょうじ"],
+      ["しらいし", "SHIRAISHI", "みょうじ"], ["ふじもと", "FUJIMOTO", "みょうじ"], ["ふじわら", "FUJIWARA", "みょうじ"], ["ふじおか", "FUJIOKA", "みょうじ"],
+      ["いっけい", "IKKEI", "なまえ"], ["きっぺい", "KIPPEI", "なまえ"], ["はっとり", "HATTORI", "みょうじ"], ["にった", "NITTA", "みょうじ"],
+      // 外国人の名前・苗字
+      ["すみす", "SMITH", "外国人の名字"], ["ぶらうん", "BROWN", "外国人の名字"], ["みれー", "MILLER", "外国人の名字"]
+    ],
+    lvl5: [
+      // 特殊ヘボン式（長音O省略、M表記）でパスポートや公的書類によく使われる苗字
+      ["おおたに", "OTANI", "みょうじ"], ["いとう", "ITO", "ヘボン式"], ["えんどう", "ENDO", "ヘボン式"], ["なんば", "NAMBA", "みょうじ"],
+      ["ほんま", "HOMMA", "みょうじ"], ["かんべ", "KAMBE", "みょうじ"], ["はんざわ", "HANZAWA", "みょうじ"], ["かんざき", "KANZAKI", "みょうじ"],
+      ["さいとう", "SAITO", "みょうじ"], ["いいだ", "IIDA", "みょうじ"], ["いいづか", "IIZUKA", "みょうじ"], ["いいじま", "IIJIMA", "みょうじ"],
+      ["おおの", "ONO", "みょうじ"], ["おおしま", "OSHIMA", "みょうじ"], ["おおはし", "OHASHI", "みょうじ"], ["おおた", "OTA", "みょうじ"],
+      ["おおにし", "ONISHI", "みょうじ"], ["おおもり", "OMORI", "みょうじ"], ["こうの", "KONO", "みょうじ"], ["こじま", "KOJIMA", "みょうじ"],
+      ["さんべ", "SAMBE", "みょうじ"], ["てんま", "TEMMA", "みょうじ"], ["じんぼ", "JIMBO", "みょうじ"], ["ほんじょう", "HONJO", "みょうじ"],
+      // 外国人の名前・苗字
+      ["うぃりあむ", "WILLIAM", "外国人の名前"], ["Catch", "JAMES", "外国人の名前"], ["じぇーむず", "JAMES", "外国人の名前"], ["ういるそん", "WILSON", "外国人の名字"]
+    ]
+  };
 
-  const TOTAL_QUESTIONS = 10;
+  const QUESTION_COUNT = 30;
+  let weakQuestions = [];
+  let currentTab = 'lvl1';
   let currentQuestionIndex = 0;
   let score = 0;
   let questions = [];
 
   // DOM要素
-  const targetNameEl = document.getElementById('targetName');
-  const typeBadgeEl = document.getElementById('typeBadge');
-  const answerInput = document.getElementById('answerInput');
-  const feedbackEl = document.getElementById('feedback');
-  const progressFill = document.getElementById('progressFill');
   const quizScreen = document.getElementById('quizScreen');
   const resultScreen = document.getElementById('resultScreen');
   const bloomStatusEl = document.getElementById('bloomStatus');
   const scoreDetailEl = document.getElementById('scoreDetail');
+  const weakBadge = document.getElementById('weakBadge');
 
   // ひまわり要素
   const stem = document.getElementById('stem');
@@ -387,12 +481,59 @@ HTML
   const wateringCan = document.getElementById('wateringCan');
   const cloudOverlay = document.getElementById('cloudOverlay');
 
-  // 初期化・ゲーム開始
+  // タブ切り替え
+  function switchTab(tabKey) {
+    currentTab = tabKey;
+    const keys = ['lvl1', 'lvl2', 'lvl3', 'lvl4', 'lvl5', 'weak'];
+    document.querySelectorAll('.tab-btn').forEach((btn, idx) => {
+      btn.classList.toggle('active', keys[idx] === tabKey);
+    });
+    initGame();
+  }
+
+  function updateWeakBadge() {
+    weakBadge.textContent = weakQuestions.length;
+  }
+
+  function getRandomQuestions(sourceArray, count) {
+    const shuffled = [...sourceArray].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, Math.min(count, sourceArray.length));
+  }
+
+  // ゲーム初期化
   function initGame() {
     currentQuestionIndex = 0;
     score = 0;
-    // シャッフルして10問選出
-    questions = [...nameDatabase].sort(() => Math.random() - 0.5).slice(0, TOTAL_QUESTIONS);
+    
+    if (currentTab === 'weak') {
+      questions = [...weakQuestions];
+    } else {
+      questions = getRandomQuestions(levelData[currentTab], QUESTION_COUNT);
+    }
+
+    if (questions.length === 0 && currentTab === 'weak') {
+      quizScreen.innerHTML = '<div class="empty-msg">🎉 苦手な問題はありません！<br>よくがんばりました！</div>';
+      resultScreen.style.display = 'none';
+      updateFlower(10);
+      return;
+    } else {
+      quizScreen.innerHTML = `
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="question-box">
+          <span class="type-badge" id="typeBadge">なまえ</span>
+          <div class="question-title">ローマ字でかこう！</div>
+          <div class="target-name" id="targetName">---</div>
+        </div>
+        <div class="input-group">
+          <input type="text" id="answerInput" placeholder="ローマ字を入力" autocomplete="off" autofocus>
+        </div>
+        <button class="btn" id="submitBtn" onclick="checkAnswer()">こたえる</button>
+        <div class="feedback" id="feedback"></div>
+      `;
+      bindQuizElements();
+    }
     
     quizScreen.style.display = 'block';
     resultScreen.style.display = 'none';
@@ -400,43 +541,68 @@ HTML
     showQuestion();
   }
 
-  // 問題表示
-  function showQuestion() {
-    const q = questions[currentQuestionIndex];
-    targetNameEl.textContent = q[0];
-    typeBadgeEl.textContent = q[2];
-    answerInput.value = '';
-    feedbackEl.textContent = '';
-    feedbackEl.className = 'feedback';
-    progressFill.style.width = `${(currentQuestionIndex / TOTAL_QUESTIONS) * 100}%`;
-    answerInput.focus();
+  function bindQuizElements() {
+    const newAnswerInput = document.getElementById('answerInput');
+    newAnswerInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') checkAnswer();
+    });
   }
 
-  // 回答チェック
+  function showQuestion() {
+    const q = questions[currentQuestionIndex];
+    document.getElementById('targetName').textContent = q[0];
+    document.getElementById('typeBadge').textContent = q[2];
+    
+    const input = document.getElementById('answerInput');
+    const feedback = document.getElementById('feedback');
+    const fill = document.getElementById('progressFill');
+
+    input.value = '';
+    feedback.textContent = '';
+    feedback.className = 'feedback';
+    fill.style.width = `${(currentQuestionIndex / questions.length) * 100}%`;
+    input.focus();
+  }
+
   function checkAnswer() {
-    const userInput = answerInput.value.trim().toUpperCase();
+    const input = document.getElementById('answerInput');
+    const feedback = document.getElementById('feedback');
+    const userInput = input.value.trim().toUpperCase();
     if (!userInput) return;
 
-    const correctAnswer = questions[currentQuestionIndex][1];
+    const currentQ = questions[currentQuestionIndex];
+    const correctAnswer = currentQ[1];
 
     if (userInput === correctAnswer) {
       score++;
-      feedbackEl.textContent = "⭕ せいかい！";
-      feedbackEl.className = "feedback correct";
+      feedback.textContent = "⭕ せいかい！";
+      feedback.className = "feedback correct";
       triggerWateringAction();
-      updateFlower(score);
+      updateFlower(Math.round((score / questions.length) * 10));
+
+      if (currentTab === 'weak') {
+        weakQuestions = weakQuestions.filter(q => q[1] !== correctAnswer);
+        updateWeakBadge();
+      }
+
     } else {
-      feedbackEl.textContent = `❌ ざんねん！ 正解は ${correctAnswer}`;
-      feedbackEl.className = "feedback incorrect";
+      feedback.textContent = `❌ ざんねん！ 正解は ${correctAnswer}`;
+      feedback.className = "feedback incorrect";
       triggerCloudAction();
+
+      const exists = weakQuestions.some(q => q[1] === currentQ[1]);
+      if (!exists) {
+        weakQuestions.push(currentQ);
+        updateWeakBadge();
+      }
     }
 
     currentQuestionIndex++;
-    answerInput.disabled = true;
+    input.disabled = true;
 
     setTimeout(() => {
-      answerInput.disabled = false;
-      if (currentQuestionIndex < TOTAL_QUESTIONS) {
+      input.disabled = false;
+      if (currentQuestionIndex < questions.length) {
         showQuestion();
       } else {
         showResult();
@@ -444,81 +610,62 @@ HTML
     }, 1500);
   }
 
-  // エンターキーでの送信対応
-  answerInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-      checkAnswer();
-    }
-  });
-
-  // ひまわりの成長段階を描画（0～10点）
-  function updateFlower(currentScore) {
-    // 茎の長さ (Qカーブで成長表現)
+  function updateFlower(step) {
     const startY = 100;
-    const endY = 100 - (currentScore * 5); // 最大50px伸びる
-    stem.setAttribute('d', `M 60 100 Q ${60 - (currentScore%2 * 5)} ${(startY+endY)/2} 60 ${endY}`);
+    const endY = 100 - (step * 5);
+    stem.setAttribute('d', `M 60 100 Q ${60 - (step % 2 * 5)} ${(startY + endY) / 2} 60 ${endY}`);
 
-    // 花の高さ追従
     const headY = endY - 60;
     document.getElementById('flowerHead').setAttribute('transform', `translate(-20, ${headY})`);
 
-    // 葉っぱ（3点以上、6点以上で表示）
-    leafLeft.style.opacity = currentScore >= 3 ? "1" : "0";
-    leafRight.style.opacity = currentScore >= 6 ? "1" : "0";
+    leafLeft.style.opacity = step >= 3 ? "1" : "0";
+    leafRight.style.opacity = step >= 6 ? "1" : "0";
 
-    // 花びらと中心の大きさ
-    const scale = Math.min(0.2 + (currentScore * 0.08), 1.0);
-    const centerRadius = Math.min(3 + (currentScore * 1.2), 15);
+    const scale = Math.min(0.2 + (step * 0.08), 1.0);
+    const centerRadius = Math.min(3 + (step * 1.2), 15);
     
     petals.setAttribute('transform', `scale(${scale})`);
-    petals.style.opacity = currentScore >= 2 ? "1" : "0";
+    petals.style.opacity = step >= 2 ? "1" : "0";
     flowerCenter.setAttribute('r', centerRadius);
   }
 
-  // 正解時：じょうろアクション
   function triggerWateringAction() {
     wateringCan.classList.add('active');
-    setTimeout(() => {
-      wateringCan.classList.remove('active');
-    }, 1000);
+    setTimeout(() => wateringCan.classList.remove('active'), 1000);
   }
 
-  // 不正解時：曇り空アクション
   function triggerCloudAction() {
     cloudOverlay.classList.add('active');
-    setTimeout(() => {
-      cloudOverlay.classList.remove('active');
-    }, 1200);
+    setTimeout(() => cloudOverlay.classList.remove('active'), 1200);
   }
 
-  // 最後の結果画面（咲き具合の判定）
   function showResult() {
     quizScreen.style.display = 'none';
     resultScreen.style.display = 'block';
 
+    const ratio = questions.length > 0 ? score / questions.length : 0;
     let bloomText = "";
-    if (score === 10) {
-      bloomText = "🌻 満開！（10分咲き）";
-    } else if (score >= 8) {
+
+    if (ratio === 1) {
+      bloomText = "🌻 満開！（パーフェクト！）";
+    } else if (ratio >= 0.8) {
       bloomText = "🌻 8分咲き（もうすぐ満開！）";
-    } else if (score >= 5) {
+    } else if (ratio >= 0.5) {
       bloomText = "🌻 5分咲き（半分咲いたよ！）";
-    } else if (score >= 3) {
+    } else if (ratio >= 0.3) {
       bloomText = "🌱 3分咲き（つぼみができた！）";
     } else {
       bloomText = "🌱 まだ芽がでたばかり";
     }
 
     bloomStatusEl.textContent = bloomText;
-    scoreDetailEl.textContent = `${TOTAL_QUESTIONS}問中 ${score}問 正解！`;
+    scoreDetailEl.textContent = `${questions.length}問中 ${score}問 正解！`;
   }
 
-  // 再挑戦
   function restartQuiz() {
     initGame();
   }
 
-  // ゲームスタート
   initGame();
 </script>
 
